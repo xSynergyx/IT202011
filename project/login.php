@@ -1,7 +1,9 @@
-<?php require_once(__DIR__ . "/partials/nav.php"); ?>
+<?php require_once(__DIR__ . "/partials/nav.php"); ?>  //todo: have to check if username is set and call db 
 <form method="POST">
     <label for="email">Email:</label>
     <input type="email" id="email" name="email" required/>
+    <label for="username">Username:</label>
+    <input type="username" id="username" name="username"/> //not required
     <label for="p1">Password:</label>
     <input type="password" id="p1" name="password" required/>
     <input type="submit" name="login" value="Login"/>
@@ -10,16 +12,20 @@
 <?php
 if (isset($_POST["login"])) {
     $email = null;
+    $username = null;
     $password = null;
     if (isset($_POST["email"])) {
         $email = $_POST["email"];
+    }
+    if (isset($_POST["username"])) {
+	$username =  $_POST["username"];
     }
     if (isset($_POST["password"])) {
         $password = $_POST["password"];
     }
     $isValid = true;
-    if (!isset($email) || !isset($password)) {
-        $isValid = false;
+    if ((!isset($email) &&  !isset($username)) || !isset($password)) {
+        $isValid = false; //potentially echo that "username or email is not set)
     }
     if (!strpos($email, "@")) {
         $isValid = false;
