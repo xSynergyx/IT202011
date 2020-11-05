@@ -79,6 +79,7 @@ if (isset($_POST["saved"])) {
 	    $currentPass = $_POST["current"];
 	    $stmt = $db->prepare("SELECT password from Users WHERE id = :id LIMIT 1");
 	    $params = array(":id" => get_user_id());
+	    $stmt->execute($params);
 	    $result = $stmt->fetch(PDO::FETCH_ASSOC);
 	    if($result && isset($result["password"])){
 		$password_hash_from_db = $result["password"];
