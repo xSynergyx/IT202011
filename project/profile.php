@@ -74,20 +74,38 @@ if (isset($_POST["saved"])) {
         }
         //password is optional, so check if it's even set
         //if so, then check if it's a valid reset request
-        if (!empty($_POST["password"]) && !empty($_POST["confirm"])) {
-            if ($_POST["password"] == $_POST["confirm"]) {
-                $password = $_POST["password"];
-                $hash = password_hash($password, PASSWORD_BCRYPT);
-                //this one we'll do separate
-                $stmt = $db->prepare("UPDATE Users set password = :password where id = :id");
-                $r = $stmt->execute([":id" => get_user_id(), ":password" => $hash]);
-                if ($r) {
-                    flash("Reset Password");
-                }
-                else {
-                    flash("Error resetting password");
-                }
-            }
+        if (!empty($_POST["current"]) && !empty($_POST["password"]) && !empty($_POST["confirm"])) {
+
+	    $currentPass = $_POST["current"];
+	    $stmt = $db->prepare("SELECT password from Users WHERE id = :id LIMIT 1");
+	    $params = array(":id" => get_user_id());
+	    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+	    if($result && isset($result["password"])){
+		$password_hash_from_db = $result["password"];
+		if(password_verify($currentPass, $password_hash_from_db)){
+
+		    if ($_POST["password"] == $_POST["confirm"]) {
+	                $password = $_POST["password"];
+	                $hash = password_hash($password, PASSWORD_BCRYPT);
+	                //this one we'll do separate
+	                $stmt = $db->prepare("UPDATE Users set password = :password where id = :id");
+	                $r = $stmt->execute([":id" => get_user_id(), ":password" => $hash]);
+	                if ($r) {
+	                    flash("Reset Password");
+			    unset($result["password"]); // Extra precautions
+	                }
+	                else {
+	                    flash("Error resetting password");
+	                }
+	            }
+		    else{
+			flash("Passwords dont match");
+		    }
+		}
+		else{
+		    flash("Wrong current password");
+		}
+	   }
         }
 //fetch/select fresh data in case anything changed
         $stmt = $db->prepare("SELECT email, username from Users WHERE id = :id LIMIT 1");
@@ -115,7 +133,9 @@ if (isset($_POST["saved"])) {
         <label for="username">Username</label>
         <input type="text" maxlength="60" name="username" value="<?php safer_echo(get_username()); ?>"/>
         <!-- DO NOT PRELOAD PASSWORD-->
-        <label for="pw">Password</label>
+	<label for="opw">Current Password</label> //opw for 'old password'
+	<input type="password" name="current"/>
+        <label for="pw">New Password</label>
         <input type="password" name="password"/>
         <label for="cpw">Confirm Password</label>
         <input type="password" name="confirm"/>
