@@ -134,7 +134,7 @@ if (isset($_POST["saved"])) {
         <label for="username">Username</label>
         <input type="text" maxlength="60" name="username" value="<?php safer_echo(get_username()); ?>"/>
         <!-- DO NOT PRELOAD PASSWORD-->
-	<label for="opw">Current Password</label> //opw for 'old password'
+	<label for="opw">Current Password</label> <!-- opw for 'old password' -->
 	<input type="password" name="current"/>
         <label for="pw">New Password</label>
         <input type="password" name="password"/>
