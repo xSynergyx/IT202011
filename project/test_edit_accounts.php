@@ -16,24 +16,20 @@ if(isset($_GET["id"])){
 //saving
 if(isset($_POST["save"])){
 	//TODO add proper validation/checks
-	$name = $_POST["name"];
-	$state = $_POST["state"];
-	$br = $_POST["base_rate"];
-	$min = $_POST["mod_min"];
-	$max = $_POST["mod_max"];
-	$nst = date('Y-m-d H:i:s');//calc
+	$account = $_POST["account_number"];
+	$account_type = $_POST["account_type"];
+	$balance = $_POST["balance"];
+	$opened_date = date('Y-m-d H:i:s');//calc
 	$user = get_user_id();
 	$db = getDB();
 	if(isset($id)){
-		$stmt = $db->prepare("UPDATE F20_Eggs set name=:name, state=:state, base_rate=:br, mod_min=:min, mod_max=:max, next_stage_time=:nst where id=:id");
+		$stmt = $db->prepare("UPDATE Accounts set account=:account_number, account_type=:account_type, balance=:balance, opened_date=:opened_date, where id=:id");
 		//$stmt = $db->prepare("INSERT INTO F20_Eggs (name, state, base_rate, mod_min, mod_max, next_stage_time, user_id) VALUES(:name, :state, :br, :min,:max,:nst,:user)");
 		$r = $stmt->execute([
-			":name"=>$name,
-			":state"=>$state,
-			":br"=>$br,
-			":min"=>$min,
-			":max"=>$max,
-			":nst"=>$nst,
+			":account_number"=>$account,
+			":account_type"=>$account_type,
+			":balance"=>$balance,
+			":opened_date"=>$opened_date,
 			":id"=>$id
 		]);
 		if($r){
@@ -55,28 +51,24 @@ $result = [];
 if(isset($id)){
 	$id = $_GET["id"];
 	$db = getDB();
-	$stmt = $db->prepare("SELECT * FROM F20_Eggs where id = :id");
+	$stmt = $db->prepare("SELECT * FROM Accounts where id = :id");
 	$r = $stmt->execute([":id"=>$id]);
 	$result = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 ?>
 
 <form method="POST">
-	<label>Name</label>
-	<input name="name" placeholder="Name" value="<?php echo $result["name"];?>"/>
-	<label>State</label>
+	<label>Account Number</label>
+	<input name="account_number" placeholder="account_number" value="<?php echo $result["account_number"];?>"/>
+	<label>Type</label>
 	<select name="state" value="<?php echo $result["state"];?>">
-		<option value="0" <?php echo ($result["state"] == "0"?'selected="selected"':'');?>>Incubating</option>
-                <option value="1" <?php echo ($result["state"] == "1"?'selected="selected"':'');?>>Hatching</option>
-                <option value="2" <?php echo ($result["state"] == "2"?'selected="selected"':'');?>>Hatched</option>
-                <option value="3" <?php echo ($result["state"] == "3"?'selected="selected"':'');?>>Expired</option>
+		<option value="0" <?php echo ($result["account_type"] == "0"?'selected="selected"':'');?>>Checking</option>
+                <option value="1" <?php echo ($result["account_type"] == "1"?'selected="selected"':'');?>>Savings</option>
+                <option value="2" <?php echo ($result["account_Type"] == "2"?'selected="selected"':'');?>>Certificate of Deposit</option>
+                <option value="3" <?php echo ($result["account_type"] == "3"?'selected="selected"':'');?>>IRA</option>
 	</select>
-	<label>Base Rate</label>
-	<input type="number" min="1" name="base_rate" value="<?php echo $result["base_rate"];?>" />
-	<label>Mod Min</label>
-	<input type="number" min="1" name="mod_min" value="<?php echo $result["mod_min"];?>" />
-	<label>Mod Max</label>
-	<input type="number" min="1" name="mod_max" value="<?php echo $result["mod_max"];?>" />
+	<label>Balance</label>
+	<input type="number" min="0.01" name="balance" value="<?php echo $result["balance"];?>" />
 	<input type="submit" name="save" value="Update"/>
 </form>
 
