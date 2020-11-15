@@ -9,7 +9,7 @@ if (!has_role("Admin")) {
 
 <form method="POST">
 	<label>Account Number</label>
-	<input name="number" placeholder="account_number"/>
+	<input type="number"  name="account_number" />
 	<label>Account Type</label>
 	<select name="account_type">
 		<option value="0">Checking</option>
