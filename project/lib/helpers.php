@@ -69,4 +69,25 @@ function getMessages() {
 }
 
 //end flash
+
+function getAccountType($n) {
+    switch ($n) {
+        case 0:
+            echo "Checking";
+            break;
+        case 1:
+            echo "Savings";
+            break;
+        case 2:
+            echo "CD";
+            break;
+        case 3:
+            echo "IRA";
+            break;
+        default:
+            echo "Unsupported account type: " . safer_echo($n);
+            break;
+    }
+}
+
 ?>
