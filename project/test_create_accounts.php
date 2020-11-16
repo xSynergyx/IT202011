@@ -18,7 +18,7 @@ if (!has_role("Admin")) {
 		<option value="3">IRA</option>
 	</select>
 	<label>Balance</label>
-	<input type="number" min="0.01" step="0.01"  name="balance"/>
+	<input type="number" min="0.01" step="0.01" name="balance"/>
 	<input type="submit" name="save" value="Create"/>
 </form>
 
@@ -34,7 +34,7 @@ if(isset($_POST["save"])){
 	$db = getDB();
 	$stmt = $db->prepare("INSERT INTO Accounts (account_number, account_type, balance, opened_date, user_id) VALUES(:account_number, :account_type, :balance, :opened_date, :user)");
 	$r = $stmt->execute([
-		":accoun_number"=>$account,
+		":account_number"=>$account,
 		":account_type"=>$account_type,
 		":balance"=>$balance,
 		":opened_date"=>$opened_date,
