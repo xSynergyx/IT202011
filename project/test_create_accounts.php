@@ -14,7 +14,7 @@ if (!has_role("Admin")) {
 	<select name="account_type">
 		<option value="0">Checking</option>
 		<option value="1">Savings</option>
-		<option value="2">Certificate of Deposit</option>
+		<option value="2">CD</option>
 		<option value="3">IRA</option>
 	</select>
 	<label>Balance</label>
