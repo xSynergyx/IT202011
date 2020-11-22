@@ -35,7 +35,7 @@ if (isset($id)) {
             <div>
                 <p>Details</p>
                 <div>Balance: <?php safer_echo($result["balance"]); ?></div>
-                <div>Account Type: <?php getState($result["account_type"]); ?></div>
+                <div>Account Type: <?php getAccountType($result["account_type"]); ?></div>
                 <div>Date Opened: <?php safer_echo($result["opened_date"]); ?></div>
                 <div>Customer: <?php safer_echo($result["username"]); ?></div>
             </div>
