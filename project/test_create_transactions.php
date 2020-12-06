@@ -8,33 +8,90 @@ if (!has_role("Admin")) {
 ?>
     <h3>Create Transaction</h3>
     <form method="POST">
-        <label>Name</label>
-        <input name="name" placeholder="Name"/>
-        <label>Base Rate</label>
-        <input type="number" min="1" name="base_rate"/>
-        <label>Mod Min</label>
-        <input type="number" min="1" name="mod_min"/>
-        <label>Mod Max</label>
-        <input type="number" min="1" name="mod_max"/>
+        <label>Source Account</label>
+        <input type="number" name="src" placeholder="000000000000"/>
+        <label>Destination Account</label>
+        <input type="number" name="dest" placeholder="000000000000"/>
+        <label>Amount</label>
+        <input type="number" min="0.01" step="0.01" name="amount"/>
+        <label>Type</label>
+        <select name="type">
+		<option value="0">Deposit</option>
+		<option value="1">Withdraw</option>
+		<option value="2">Transfer</option>
+	</select>
+	<label>Memo</label>
+	<input type="text" name="memo" placeholder="Message to other person"/>
         <input type="submit" name="save" value="Create"/>
     </form>
 
 <?php
 if (isset($_POST["save"])) {
     //TODO add proper validation/checks
-    $name = $_POST["name"];
-    $br = $_POST["base_rate"];
-    $min = $_POST["mod_min"];
-    $max = $_POST["mod_max"];
+    $src = $_POST["src"];
+    $dest = $_POST["dest"];
+    $amount = $_POST["amount"];
+    $type = $_POST["type"];
+    $memo = $_POST["memo"];
     $user = get_user_id();
+    $created = date('Y-m-d H:i:s');
+    $a1total = 0;
+    $a2total = 0;
+
     $db = getDB();
-    $stmt = $db->prepare("INSERT INTO F20_Incubators (name, base_rate, mod_min, mod_max, user_id) VALUES(:name, :br, :min,:max,:user)");
+
+    //calculating each total
+    $stmt = $db->prepare("SELECT balance FROM Accounts WHERE account_number = :acct");
+    $r = $stmt->execute([":acct" => $src]);
+    $resultSrc = $stmt->fetch(PDO::FETCH_ASSOC);
+    $if (!$resultSrc){
+	$e = $stmt->errorInfo();
+	flash($e[2]);
+    }
+    $a1total = $resultSrc["balance"];
+
+    $r = $stmt->execute([":acct" => $dest]);
+    $resultDest = $stmt->fetch(PDO::FETCH_ASSOC);
+    $if (!$resultDest){
+	$e = $stmt->errorInfo();
+	flash($e[2]);
+    }
+    $a2total = $resultDest["balance"];
+
+    switch($type){
+	case "0":
+		$a1total += $amount;
+		$a2total -= $amount;
+		break;
+	case "1":
+		$a1total -= $amount;
+		$a2total += $amount;
+		$amount = $amount * -1;
+		break;
+	case "2": //in the future. don't let them select destination account unless it's a transfer 
+		$a1total -= $amount; //case 1 and 2 technically the same right now.
+		$a2total += $amount;
+		$amount = $amount * -1;
+		break;
+    }
+
+    $stmt = $db->prepare("INSERT INTO Transactions (act_src_id, act_dest_id, amount, action_type, memo, expect_total, created) VALUES(:p1a1, :p1a2, :p1amount, :type, :memo, :a1total, :created), (:p2a1, :p2a2, :p2amount, :type, :memo, :p2total, :created)"); // TODO insert both transactions into table (p1 to p2 and p2 to p1)
     $r = $stmt->execute([
-        ":name" => $name;
-        ":br" => $br,
-        ":min" => $min,
-        ":max" => $max,
-        ":user" => $user
+        ":p1a1" => $src,
+        ":p1a2" => $dest,
+        ":p1amount" => $amount,
+        ":type" => $type,
+        ":memo" => $memo,
+	":a1total" => $a1total,  //lol have to figure this out
+	":created" => $created,
+
+	":p2a1" => $dest, //switched accounts
+        ":p2a2" => $src,
+        ":p2amount" => ($amount*-1),
+        ":type" => $type, //this might be duplicate
+        ":memo" => $memo,
+	":a2total" => $a2total,  //lol have to figure this out too
+	":created" => $created
     ]);
     if ($r) {
         flash("Created successfully with id: " . $db->lastInsertId());
