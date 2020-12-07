@@ -8,10 +8,10 @@ if (!has_role("Admin")) {
 ?>
     <h3>Create Transaction</h3>
     <form method="POST">
-        <label>Source Account</label>
-        <input type="number" name="src" placeholder="000000000000"/>
-        <label>Destination Account</label>
-        <input type="number" name="dest" placeholder="000000000000"/>
+        <label>Source Account ID</label>
+        <input type="number" name="src" placeholder="1"/>
+        <label>Destination Account ID</label>
+        <input type="number" name="dest" placeholder="2"/>
         <label>Amount</label>
         <input type="number" min="0.01" step="0.01" name="amount"/>
         <label>Type</label>
@@ -35,16 +35,14 @@ if (isset($_POST["save"])) {
     $memo = $_POST["memo"];
     $user = get_user_id();
     $created = date('Y-m-d H:i:s');
-    $a1total = 0;
-    $a2total = 0;
 
     $db = getDB();
 
     //calculating each total
-    $stmt = $db->prepare("SELECT balance FROM Accounts WHERE account_number = :acct");
+    $stmt = $db->prepare("SELECT balance FROM Accounts WHERE Accounts.id = :acct");
     $r = $stmt->execute([":acct" => $src]);
     $resultSrc = $stmt->fetch(PDO::FETCH_ASSOC);
-    $if (!$resultSrc){
+    if (!$resultSrc){
 	$e = $stmt->errorInfo();
 	flash($e[2]);
     }
@@ -52,7 +50,7 @@ if (isset($_POST["save"])) {
 
     $r = $stmt->execute([":acct" => $dest]);
     $resultDest = $stmt->fetch(PDO::FETCH_ASSOC);
-    $if (!$resultDest){
+    if (!$resultDest){
 	$e = $stmt->errorInfo();
 	flash($e[2]);
     }
@@ -75,22 +73,22 @@ if (isset($_POST["save"])) {
 		break;
     }
 
-    $stmt = $db->prepare("INSERT INTO Transactions (act_src_id, act_dest_id, amount, action_type, memo, expect_total, created) VALUES(:p1a1, :p1a2, :p1amount, :type, :memo, :a1total, :created), (:p2a1, :p2a2, :p2amount, :type, :memo, :p2total, :created)"); // TODO insert both transactions into table (p1 to p2 and p2 to p1)
+    $stmt = $db->prepare("INSERT INTO Transactions (act_src_id, act_dest_id, amount, action_type, memo, expected_total, created) VALUES(:p1a1, :p1a2, :p1amount, :type, :memo, :a1total, :created), (:p2a1, :p2a2, :p2amount, :type, :memo, :a2total, :created)"); // TODO insert both transactions into table (p1 to p2 and p2 to p1)
     $r = $stmt->execute([
         ":p1a1" => $src,
         ":p1a2" => $dest,
         ":p1amount" => $amount,
         ":type" => $type,
         ":memo" => $memo,
-	":a1total" => $a1total,  //lol have to figure this out
+	":a1total" => $a1total,
 	":created" => $created,
 
 	":p2a1" => $dest, //switched accounts
         ":p2a2" => $src,
         ":p2amount" => ($amount*-1),
-        ":type" => $type, //this might be duplicate
+        ":type" => $type,
         ":memo" => $memo,
-	":a2total" => $a2total,  //lol have to figure this out too
+	":a2total" => $a2total,
 	":created" => $created
     ]);
     if ($r) {
