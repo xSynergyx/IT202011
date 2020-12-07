@@ -16,9 +16,9 @@ if (!has_role("Admin")) {
         <input type="number" min="0.01" step="0.01" name="amount"/>
         <label>Type</label>
         <select name="type">
-		<option value="0">Deposit</option>
-		<option value="1">Withdraw</option>
-		<option value="2">Transfer</option>
+		<option value="Deposit">Deposit</option>
+		<option value="Withdraw">Withdraw</option>
+		<option value="Transfer">Transfer</option>
 	</select>
 	<label>Memo</label>
 	<input type="text" name="memo" placeholder="Message to other person"/>
@@ -39,6 +39,7 @@ if (isset($_POST["save"])) {
     $db = getDB();
 
     //calculating each total
+    //woops, calculated this the total with using SQL's sum function. Consider changing
     $stmt = $db->prepare("SELECT balance FROM Accounts WHERE Accounts.id = :acct");
     $r = $stmt->execute([":acct" => $src]);
     $resultSrc = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -57,16 +58,16 @@ if (isset($_POST["save"])) {
     $a2total = $resultDest["balance"];
 
     switch($type){
-	case "0":
+	case "Deposit":
 		$a1total += $amount;
 		$a2total -= $amount;
 		break;
-	case "1":
+	case "Withdraw":
 		$a1total -= $amount;
 		$a2total += $amount;
 		$amount = $amount * -1;
 		break;
-	case "2": //in the future. don't let them select destination account unless it's a transfer 
+	case "Transfer": //in the future. don't let them select destination account unless it's a transfer 
 		$a1total -= $amount; //case 1 and 2 technically the same right now.
 		$a2total += $amount;
 		$amount = $amount * -1;
