@@ -39,7 +39,8 @@ if (isset($_POST["save"])) {
     $db = getDB();
 
     //calculating each total
-    //woops, calculated this the total with using SQL's sum function. Consider changing
+    //woops, calculated this the total with using SQL's sum function.
+    //TODO USE SQL's SUM FUNCTION
     $stmt = $db->prepare("SELECT balance FROM Accounts WHERE Accounts.id = :acct");
     $r = $stmt->execute([":acct" => $src]);
     $resultSrc = $stmt->fetch(PDO::FETCH_ASSOC);
