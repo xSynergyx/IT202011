@@ -14,9 +14,8 @@ if (isset($_POST["query"])) {
 }
 if (isset($_POST["search"]) && !empty($query)) {
     $db = getDB();
-    $stmt = $db->prepare("SELECT incu.id,incu.name,egg.name as egg, Users.username from F20_Incubators as incu JOIN Users on incu.user_id = Users.id LEFT JOIN F20_Eggs as egg on incu.egg_id = egg.id WHERE incu.name like :q LIMIT 10");
-    // the db query i'll be using. replace syn with 'query' or something
-    // SELECT Users.username, acc.account_number, tr.amount, tr.action_type, tr.memo, tr.expected_total FROM `Transactions` as tr JOIN Accounts as acc on tr.act_src_id = acc.id JOIN Users on acc.user_id = Users.id WHERE Users.username = 'syn'
+    $stmt = $db->prepare("SELECT Users.username, acc.account_number, tr.id, tr.amount, tr.action_type, tr.memo, tr.expected_total FROM `Transactions` as tr JOIN Accounts as acc on tr.act_src_id = acc.id JOIN Users on acc.user_id = Users.id WHERE Users.username like :q LIMIT 10");
+    // SELECT Users.username, acc.account_number, tr.amount, tr.action_type, tr.memo, tr.expected_total FROM `Transactions` as tr JOIN Accounts as acc on tr.act_src_id = acc.id JOIN Users on acc.user_id = Users.id WHERE Users.username like :q LIMIT 10
     $r = $stmt->execute([":q" => "%$query%"]);
     if ($r) {
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -37,20 +36,32 @@ if (isset($_POST["search"]) && !empty($query)) {
             <?php foreach ($results as $r): ?>
                 <div class="list-group-item">
                     <div>
-                        <div>Name:</div>
-                        <div><?php safer_echo($r["name"]); ?></div>
-                    </div>
-                    <div>
-                        <div>Egg:</div>
-                        <div><?php safer_echo($r["egg"]); ?></div>
-                    </div>
-                    <div>
-                        <div>Owner:</div>
+                        <div>Username:</div>
                         <div><?php safer_echo($r["username"]); ?></div>
                     </div>
                     <div>
-                        <a type="button" href="test_edit_incubator.php?id=<?php safer_echo($r['id']); ?>">Edit</a>
-                        <a type="button" href="test_view_incubator.php?id=<?php safer_echo($r['id']); ?>">View</a>
+                        <div>Account Number:</div>
+                        <div><?php safer_echo($r["account_number"]); ?></div>
+                    </div>
+                    <div>
+                        <div>Type:</div>
+                        <div><?php safer_echo($r["action_type"]); ?></div>
+                    </div>
+		    <div>
+                        <div>Amount:</div>
+                        <div><?php safer_echo($r["amount"]); ?></div>
+                    </div>
+		    <div>
+                        <div>Memo:</div>
+                        <div><?php safer_echo($r["memo"]); ?></div>
+                    </div>
+		    <div>
+                        <div>Account Total:</div>
+                        <div><?php safer_echo($r["expected_total"]); ?></div>
+                    </div>
+                    <div>
+                        <a type="button" href="test_edit_transactions.php?id=<?php safer_echo($r['id']); ?>">Edit</a>
+                        <a type="button" href="test_view_transactions.php?id=<?php safer_echo($r['id']); ?>">View</a>
                     </div>
                 </div>
             <?php endforeach; ?>
