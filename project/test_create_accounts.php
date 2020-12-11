@@ -18,7 +18,7 @@ if (!has_role("Admin")) {
 		<option value="3">IRA</option>
 	</select>
 	<label>Balance</label>
-	<input type="number" min="0.01" step="0.01" name="balance"/>
+	<input type="number" min="0.00" step="0.01" name="balance"/>
 	<input type="submit" name="save" value="Create"/>
 </form>
 

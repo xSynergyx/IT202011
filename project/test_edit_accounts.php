@@ -19,17 +19,15 @@ if(isset($_POST["save"])){
 	$account = $_POST["account_number"];
 	$account_type = $_POST["account_type"];
 	$balance = $_POST["balance"];
-	$opened_date = date('Y-m-d H:i:s');//calc
 	$user = get_user_id();
 	$db = getDB();
 	if(isset($id)){
-		$stmt = $db->prepare("UPDATE Accounts set account_number=:account_number, account_type=:account_type, balance=:balance, opened_date=:opened_date where id=:id");
+		$stmt = $db->prepare("UPDATE Accounts set account_number=:account_number, account_type=:account_type, balance=:balance where id=:id");
 		//$stmt = $db->prepare("INSERT INTO F20_Eggs (name, state, base_rate, mod_min, mod_max, next_stage_time, user_id) VALUES(:name, :state, :br, :min,:max,:nst,:user)");
 		$r = $stmt->execute([
 			":account_number"=>$account,
 			":account_type"=>$account_type,
 			":balance"=>$balance,
-			":opened_date"=>$opened_date,
 			":id"=>$id
 		]);
 		if($r){
@@ -68,7 +66,7 @@ if(isset($id)){
                 <option value="3" <?php echo ($result["account_type"] == "3"?'selected="selected"':'');?>>IRA</option>
 	</select>
 	<label>Balance</label>
-	<input type="number" min="0.01" step="0.01" name="balance" value="<?php echo $result["balance"];?>" />
+	<input type="number" min="0.00" step="0.01" name="balance" value="<?php echo $result["balance"];?>" />
 	<input type="submit" name="save" value="Update"/>
 </form>
 
