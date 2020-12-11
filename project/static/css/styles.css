@@ -34,7 +34,7 @@ label {
     margin-left: 15%;
 }
 
-p {
+p, h3, .card-body, .card-title {
     margin-left: 15%;
 }
 
