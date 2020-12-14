@@ -5,13 +5,14 @@ body {
 
 ul[class="nav"]{
     width:  70%;
-    margin-top: 20px;
     margin: auto;
     list-style-type: none;
     overflow: hidden;
-    text-shadow: 2px 1px black;
-    background-color: #026e02;
+    text-shadow: 1px 1px black;
+/*    background-color: #026e02; */
+    border-bottom: 5px solid #026E02;
     border-radius: 8px;
+    margin-bottom: 28px;
 }
 
 .nav > li {
@@ -20,21 +21,23 @@ ul[class="nav"]{
 
 .nav > li a {
     display: block;
-    color: #ffffff;
+    color: #026E02;
     text-align: center;
     padding: 16px;
     text-decoration: none;
 }
 
 .nav > li a:hover {
-    background-color: #37b03c;
+    /* background-color: #37b03c; */
+    border-radius: 16px;
+    border-bottom: 3px solid black;
 }
 
 label {
     margin-left: 15%;
 }
 
-p, h3, .card-body, .card-title {
+p, h3, h6, .card-body, .card-title {
     margin-left: 15%;
 }
 
@@ -49,7 +52,7 @@ input, select {
     box-sizing: border-box;
 }
 
-input[type=submit] { // Submit button
+input[type=submit] { /* Submit button */
     margin: 5%;
     background-color: #026e02;
     color: white;
