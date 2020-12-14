@@ -61,3 +61,5 @@ if (!empty($email)) {
         <p>You don't have any account with us yet.</p>
     <?php endif; ?>
 </div>
+
+<?php require(__DIR__ . "/partials/flash.php");
