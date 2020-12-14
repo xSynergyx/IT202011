@@ -27,8 +27,11 @@ if(isset($_POST["save"]) && ($_POST["balance"]>=5)){
 	$account = rand(10000000, 99999999);
 	$account = sprintf("%012d", $account); // Adding 4 leading 0's infront of all accounts. It's my bank's thing
 	$account_type = $_POST["account_type"];
+	$type = "Deposit";
+	$src = "000000000000"; //world account
 	$balance = $_POST["balance"];
-	$opened_date = date('Y-m-d H:i:s');//calc
+	$world_acc = 1;
+	$opened_date = date('Y-m-d H:i:s'); //calc
 	$user = get_user_id();
 	$db = getDB();
 	$stmt = $db->prepare("INSERT INTO Accounts (account_number, account_type, balance, opened_date, user_id) VALUES(:account_number, :account_type, :balance, :opened_date, :user)");
@@ -40,10 +43,57 @@ if(isset($_POST["save"]) && ($_POST["balance"]>=5)){
 		":user"=>$user
 	]);
 	if($r){
-		//FIRST create the accounts page
+		//Getting balance of the world account
+		$stmt = $db->prepare("SELECT balance FROM Accounts WHERE Accounts.id =:acct");
+		$r = $stmt->execute([":acct" => $world_acc]);
+		$resultWorld = $stmt->fetch(PDO::FETCH_ASSOC);
+		if (!resultWorld){
+			$e = $stmt->errorInfo();
+			flash($e[2]);
+		}
+		$a2total = $resultWorld["balance"] + ($balance * -1);
 		//TODO create a transaction into this account from world account. update each account accordingly.
-		//TODO redirect user to accounts page (i should probably create the accounts page)
+		$stmt = $db->prepare("INSERT INTO Transactions (act_src_id, act_dest_id, amount, action_type, memo, expected_total, created) VALUES(:p1a1, :p1a2, :p1amount, :type, :memo, :a1total, :created), (:p2a1, :p2a2, :p2amount, :type, :memo, :a2total, :created)");
+		$r = $stmt->execute([
+       			":p1a1" => $src,
+       			":p1a2" => $account,
+			":p1amount" => $balance,
+        		":type" => $type,
+        		":memo" => $memo,
+			":a1total" => $balance,
+			":created" => $opened_date,
+
+			":p2a1" => $account, //switched accounts
+        		":p2a2" => $src,
+        		":p2amount" => ($balance*-1),
+        		":type" => $type,
+        		":memo" => $memo,
+			":a2total" => $a2total, //calculate totals
+			":created" => $opened_date
+    		]);
+    		if ($r) {
+			//display nothing as long as transaction is fine
+    		}
+    		else {
+        		$e = $stmt->errorInfo();
+        		flash("Error creating transaction: " . var_export($e, true));
+    		}
+
+		//Update world account
+		$stmt = $db->prepare("UPDATE Accounts set balance=:balance where id=:id");
+		$r = $stmt->execute([
+			":balance" => $balance,
+			":id" => $world_acc
+		]);
+		if($r){
+			//nothing
+		}
+		else{
+			$e = $stmt->errorInfo();
+			flash("Error updating world account: " . var_export($e, true));
+		}
 		flash("Created your $account_type successfuly!");
+		die(header("Location: list_accounts.php"));
 	}
 	else{
 		$e = $stmt->errorInfo();

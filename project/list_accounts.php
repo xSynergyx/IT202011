@@ -31,7 +31,6 @@ if (!empty($email)) {
     <input type="submit" value="Search" name="search"/>
 </form>
 -->
-<?php echo (count($results)); ?>
 <div class="results">
     <?php if (count($results) > 0): ?>
         <div class="list-group">
