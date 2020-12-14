@@ -101,7 +101,7 @@ if(isset($_POST["save"]) && ($_POST["balance"]>=5)){
 		}
 		//TODO just have to make sure flash messages displays after redirecting the user
 		//Then can move on to the othe transaction related things for milestone 2
-		flash("Created your $account_type successfuly!");
+		flash("Created your $account_type account successfuly!");
 		die(header("Location: list_accounts.php"));
 	}
 	else{
