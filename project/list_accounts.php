@@ -24,6 +24,9 @@ if (!empty($email)) {
     }
 }
 
+//TODO another query so i can list out all the transaction results similar to listing all the account results.
+//Basically a nested query
+
 ?>
 <!--
 <form method="POST">
@@ -48,12 +51,10 @@ if (!empty($email)) {
                         <div>Balance:</div>
                         <div><?php safer_echo($r["balance"]); ?></div>
                     </div>
-<!--
                     <div>
-                        <a type="button" href="test_edit_accounts.php?id=<?php safer_echo($r['id']); ?>">Edit</a>
-                        <a type="button" href="view_accounts.php?id=<?php safer_echo($r['id']); ?>">View</a>
+                        <a type="button" href="list_transactions.php?account_number=<?php safer_echo($r['account_number']); ?>">Transactions</a>
+                       <!-- <a type="button" href="view_accounts.php?id=<?php safer_echo($r['id']); ?>">View (dont click me)</a>  -->
                     </div>
--->
                 </div>
             <?php endforeach; ?>
         </div>
