@@ -45,7 +45,7 @@ if (!empty($email)) {
 <?php
 if (isset($_POST["save"])) {
     $src = $_POST["account"];
-    $dest = $_POST["000000000000"]; //world account
+    $dest = "000000000000"; //world account
     $amount = $_POST["amount"];
     $type = $_POST["type"];
     $memo = $_POST["memo"];
@@ -120,22 +120,25 @@ if (isset($_POST["save"])) {
         $e = $stmt->errorInfo();
         flash("Error creating: " . var_export($e, true));
     }
-
+    echo($src);
     //Updating each account
-    $stmt = $db->prepare("UPDATE Accounts set balance=:balance where id=:id");
+    $stmt = $db->prepare("UPDATE Accounts set balance=:balance WHERE id=:id");
     $r = $stmt->execute([
 	":balance" => $a1total,
-	":id" => $src,
+	":id" => $src
+    ]);
 
+    $r2 = $stmt->execute([
 	":balance" => $a2total, //world account
 	"id" => $dest
     ]);
 
-    if($r) {
+    if($r && $r2) {
 	flash("Succesfully completed your $type!");
     }
     else{
 	 flash("Error updating your account balance");
+    }
 }
 ?>
 <?php require(__DIR__ . "/partials/flash.php");
