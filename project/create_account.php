@@ -62,16 +62,16 @@ if(isset($_POST["save"]) && ($_POST["balance"]>=5)){
 		// Create a transaction from world account to new account
 		$stmt = $db->prepare("INSERT INTO Transactions (act_src_id, act_dest_id, amount, action_type, memo, expected_total, created) VALUES(:p1a1, :p1a2, :p1amount, :type, :memo, :a1total, :created), (:p2a1, :p2a2, :p2amount, :type, :memo, :a2total, :created)");
 		$r = $stmt->execute([
-       			":p1a1" => $src,
-       			":p1a2" => $accId,
+       			":p1a1" => $accId,
+       			":p1a2" => $src,
 			":p1amount" => $balance,
         		":type" => $type,
         		":memo" => $memo,
 			":a1total" => $balance,
 			":created" => $opened_date,
 
-			":p2a1" => $accId, //switched accounts
-        		":p2a2" => $src,
+			":p2a1" => $src, //switched accounts. this is the world account
+        		":p2a2" => $accId,
         		":p2amount" => ($balance*-1),
         		":type" => $type,
         		":memo" => $memo,
