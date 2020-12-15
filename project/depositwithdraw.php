@@ -44,9 +44,8 @@ if (!empty($email)) {
 
 <?php
 if (isset($_POST["save"])) {
-    //TODO add proper validation/checks
-    $src = $_POST["src"];
-    $dest = $_POST["dest"];
+    $src = $_POST["account"];
+    $dest = $_POST["000000000000"]; //world account
     $amount = $_POST["amount"];
     $type = $_POST["type"];
     $memo = $_POST["memo"];
@@ -56,9 +55,7 @@ if (isset($_POST["save"])) {
     $db = getDB();
 
     //calculating each total
-    //woops, calculated this the total with using SQL's sum function.
-    //TODO USE SQL's SUM FUNCTION
-    $stmt = $db->prepare("SELECT balance FROM Accounts WHERE Accounts.id = :acct");
+    $stmt = $db->prepare("SELECT id, balance FROM Accounts WHERE account_number = :acct");
     $r = $stmt->execute([":acct" => $src]);
     $resultSrc = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$resultSrc){
@@ -66,6 +63,7 @@ if (isset($_POST["save"])) {
 	flash($e[2]);
     }
     $a1total = $resultSrc["balance"];
+    $src = $resultSrc["id"]; //changing $src to id for inserting transaction details
 
     $r = $stmt->execute([":acct" => $dest]);
     $resultDest = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -74,6 +72,7 @@ if (isset($_POST["save"])) {
 	flash($e[2]);
     }
     $a2total = $resultDest["balance"];
+    $dest = $resultDest["id"];
 
     switch($type){
 	case "Deposit":
@@ -81,12 +80,16 @@ if (isset($_POST["save"])) {
 		$a2total -= $amount;
 		break;
 	case "Withdraw":
+		if($amount > $a1total){
+			flash("Cannot withdraw more than your available balance");
+			die(header("Location: depositwithdraw.php"));
+		}
 		$a1total -= $amount;
 		$a2total += $amount;
 		$amount = $amount * -1;
 		break;
-	case "Transfer": //in the future. don't let them select destination account unless it's a transfer 
-		$a1total -= $amount; //case 1 and 2 technically the same right now.
+	case "Transfer":
+		$a1total -= $amount;
 		$a2total += $amount;
 		$amount = $amount * -1;
 		break;
@@ -111,12 +114,28 @@ if (isset($_POST["save"])) {
 	":created" => $created
     ]);
     if ($r) {
-        flash("Created successfully with id: " . $db->lastInsertId());
+        //nothing
     }
     else {
         $e = $stmt->errorInfo();
         flash("Error creating: " . var_export($e, true));
     }
+
+    //Updating each account
+    $stmt = $db->prepare("UPDATE Accounts set balance=:balance where id=:id");
+    $r = $stmt->execute([
+	":balance" => $a1total,
+	":id" => $src,
+
+	":balance" => $a2total, //world account
+	"id" => $dest
+    ]);
+
+    if($r) {
+	flash("Succesfully completed your $type!");
+    }
+    else{
+	 flash("Error updating your account balance");
 }
 ?>
 <?php require(__DIR__ . "/partials/flash.php");
