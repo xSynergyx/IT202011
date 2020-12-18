@@ -120,7 +120,6 @@ if (isset($_POST["save"])) {
         $e = $stmt->errorInfo();
         flash("Error creating: " . var_export($e, true));
     }
-    echo($src);
     //Updating each account
     $stmt = $db->prepare("UPDATE Accounts set balance=:balance WHERE id=:id");
     $r = $stmt->execute([

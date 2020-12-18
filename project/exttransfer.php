@@ -46,9 +46,9 @@ if (!empty($email)) {
 <?php
 if (isset($_POST["save"])) {
     $src = $_POST["accountsrc"];
-    $digits = $POST["accountdigits"];
+    $digits = $_POST["accountdigits"];
     $last = $_POST["lastname"];
-    $dest;
+    $dest = "";
     $amount = $_POST["amount"];
     $type = "Ext-transfer";
     $memo = $_POST["memo"];
@@ -59,13 +59,16 @@ if (isset($_POST["save"])) {
 
     //Looking for the destination account
     $stmt = $db->prepare("SELECT acc.account_number FROM Accounts as acc JOIN Users on acc.user_id = Users.id JOIN Names as n on n.user_id = Users.id WHERE acc.account_number LIKE :digits AND n.last_name = :last LIMIT 1");
-    $r = $stmt->execute([":digits" = > "%$digits", ":last" => "$last"]);
+    $r = $stmt->execute([":digits" => "%$digits", ":last" => "$last"]);
     if ($r){
 	$resultExt = $stmt->fetch(PDO::FETCH_ASSOC);
 	$dest = $resultExt["account_number"];
-    } else {
+    }
+
+    //Cancel transaction if we cannot find the destination account
+    if (empty($dest)){
 	flash("Could not find the account you are looking for. Please try again.");
-	die(header("Location: exttransfer.php")
+	die(header("Location: exttransfer.php"));
     }
 
     //calculating each total
