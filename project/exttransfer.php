@@ -11,6 +11,7 @@ if (!is_logged_in()) {
 if (isset($_SESSION["user"])) {
 	$email = $_SESSION["user"]["email"];
 }
+//getting all the user's accounts
 if (!empty($email)) {
 	$db = getDB();
 	$stmt = $db->prepare("SELECT acc.account_number FROM Accounts as acc JOIN Users on acc.user_id = Users.id WHERE Users.email =:email");
@@ -23,18 +24,18 @@ if (!empty($email)) {
    	}
 }
 ?>
+    <h3>Transfer</h3>
     <form method="POST">
-        <label>Transaction Type:</label>
-        <select name="type">
-		<option value="Deposit">Deposit</option>
-		<option value="Withdraw">Withdraw</option>
-	</select>
-        <label>Account</label>
-        <select name="account">
+        <label>From</label>
+        <select name="accountsrc">
 		<?php foreach ($accResults as $ar): ?>
 		<option value="<?php safer_echo($ar["account_number"]); ?>"><?php safer_echo($ar["account_number"]); ?></option>
 		<?php endforeach; ?>
 	</select>
+	<label>Receiver's Last Name</label>
+	<input type="text" name="lastname"/>
+	<label>Last Four Digits of Receiver's Account</label>
+	<input type="number" name="accountdigits"/>
 	<label>Amount</label>
         <input type="number" min="0.01" step="0.01" name="amount"/>
 	<label>Memo</label>
@@ -44,15 +45,31 @@ if (!empty($email)) {
 
 <?php
 if (isset($_POST["save"])) {
-    $src = $_POST["account"];
-    $dest = "000000000000"; //world account
+    $src = $_POST["accountsrc"];
+    $digits = $_POST["accountdigits"];
+    $last = $_POST["lastname"];
+    $dest = "";
     $amount = $_POST["amount"];
-    $type = $_POST["type"];
+    $type = "Ext-transfer";
     $memo = $_POST["memo"];
     $user = get_user_id();
     $created = date('Y-m-d H:i:s');
 
     $db = getDB();
+
+    //Looking for the destination account
+    $stmt = $db->prepare("SELECT acc.account_number FROM Accounts as acc JOIN Users on acc.user_id = Users.id JOIN Names as n on n.user_id = Users.id WHERE acc.account_number LIKE :digits AND n.last_name = :last LIMIT 1");
+    $r = $stmt->execute([":digits" => "%$digits", ":last" => "$last"]);
+    if ($r){
+	$resultExt = $stmt->fetch(PDO::FETCH_ASSOC);
+	$dest = $resultExt["account_number"];
+    }
+
+    //Cancel transaction if we cannot find the destination account
+    if (empty($dest)){
+	flash("Could not find the account you are looking for. Please try again.");
+	die(header("Location: exttransfer.php"));
+    }
 
     //calculating each total
     $stmt = $db->prepare("SELECT id, balance FROM Accounts WHERE account_number = :acct");
@@ -63,6 +80,11 @@ if (isset($_POST["save"])) {
 	flash($e[2]);
     }
     $a1total = $resultSrc["balance"];
+    //checking for enough funds
+    if ($amount > $a1total){
+	flash("Cannot transfer more funds than are available in the source account. Please try again.");
+	die(header("Location: transfer.php"));
+    }
     $src = $resultSrc["id"]; //changing $src to id for inserting transaction details
 
     $r = $stmt->execute([":acct" => $dest]);
@@ -74,26 +96,9 @@ if (isset($_POST["save"])) {
     $a2total = $resultDest["balance"];
     $dest = $resultDest["id"];
 
-    switch($type){
-	case "Deposit":
-		$a1total += $amount;
-		$a2total -= $amount;
-		break;
-	case "Withdraw":
-		if($amount > $a1total){
-			flash("Cannot withdraw more than your available balance");
-			die(header("Location: depositwithdraw.php"));
-		}
-		$a1total -= $amount;
-		$a2total += $amount;
-		$amount = $amount * -1;
-		break;
-	case "Transfer":
-		$a1total -= $amount;
-		$a2total += $amount;
-		$amount = $amount * -1;
-		break;
-    }
+    $a1total -= $amount;
+    $a2total += $amount;
+    $amount = $amount * -1;
 
     $stmt = $db->prepare("INSERT INTO Transactions (act_src_id, act_dest_id, amount, action_type, memo, expected_total, created) VALUES(:p1a1, :p1a2, :p1amount, :type, :memo, :a1total, :created), (:p2a1, :p2a2, :p2amount, :type, :memo, :a2total, :created)"); // TODO insert both transactions into table (p1 to p2 and p2 to p1)
     $r = $stmt->execute([
@@ -120,6 +125,7 @@ if (isset($_POST["save"])) {
         $e = $stmt->errorInfo();
         flash("Error creating: " . var_export($e, true));
     }
+
     //Updating each account
     $stmt = $db->prepare("UPDATE Accounts set balance=:balance WHERE id=:id");
     $r = $stmt->execute([
