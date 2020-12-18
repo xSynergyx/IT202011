@@ -10,6 +10,19 @@ if (!is_logged_in()) {
 }
 
 $db = getDB();
+
+//getting the first and last name
+if (isset($_SESSION["user"])){
+    $id = $_SESSION["user"]["id"];
+}
+$stmt = $db->prepare("SELECT n.first_name, n.last_name FROM Names as n JOIN Users on n.user_id = Users.id WHERE Users.id =:id LIMIT 1");
+$r = $stmt->execute([":id" => "$id"]);
+if ($r){
+    $nameResults = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+$firstName = $nameResults["first_name"];
+$lastName = $nameResults["last_name"];
+
 //save data if we submitted the form
 if (isset($_POST["saved"])) {
     $isValid = true;
@@ -123,12 +136,32 @@ if (isset($_POST["saved"])) {
     else {
         //else for $isValid, though don't need to put anything here since the specific failure will output the message
     }
+
+    //updating name if either first or last names are changed.
+    if ($firstName != $_POST["firstname"] || $lastName != $_POST["lastname"]){
+	$newFirstName = $_POST["firstname"];
+	$newLastName = $_POST["lastname"];
+	$stmt = $db->prepare("UPDATE Names set first_name =:first, last_name =:last  WHERE id =:id");
+	$rn = $stmt->execute([
+		":first" => "$newFirstName",
+		":last" => "$newLastName",
+		":id" => get_user_id()
+	]);
+	if ($rn) {
+	    flash("Updated your name!");
+        }
+	//refreshing data in case it changed
+	$firstName = $newFirstName;
+	$lastName = $newLastName;
+    }
+
 }
-
-
 ?>
-
     <form method="POST">
+	<label for="firstname">First Name</label>
+	<input type="text" name="firstname" value="<?php safer_echo("$firstName"); ?>"/>
+	<label for="lastname">Last Name</label>
+	<input type="text" name="lastname" value="<?php safer_echo("$lastName"); ?>"/>
         <label for="email">Email</label>
         <input type="email" name="email" value="<?php safer_echo(get_email()); ?>"/>
         <label for="username">Username</label>
