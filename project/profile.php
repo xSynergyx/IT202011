@@ -20,8 +20,26 @@ $r = $stmt->execute([":id" => "$id"]);
 if ($r){
     $nameResults = $stmt->fetch(PDO::FETCH_ASSOC);
 }
-$firstName = $nameResults["first_name"];
-$lastName = $nameResults["last_name"];
+$firstName = $nameResults["first_name"] ?? '';
+$lastName = $nameResults["last_name"] ?? '';
+
+//incase user hasn't set a name, we'll add the user to the table and set the name to N/A for now
+//until they update it
+if (empty($firstName) || empty($lastName)){
+    $created = date('Y-m-d H:i:s');
+    $first = "N/A";
+    $last = "N/A";
+    $stmt = $db->prepare("INSERT INTO Names (user_id, first_name, last_name, created) VALUES (:id, :first, :last, :created)");
+    $r = $stmt->execute([
+	":id" => $id,
+	":first" => $first,
+	":last" => $last,
+	":created" => $created,
+    ]);
+    if ($r) {
+	die(header("Location: profile.php"));
+    }
+}
 
 //save data if we submitted the form
 if (isset($_POST["saved"])) {
