@@ -47,7 +47,7 @@ if (!empty($email)) {
 <?php
 if (isset($_POST["save"])) {
     $src = $_POST["accountsrc"];
-    $dest = $_POST["accountdest"; //world account
+    $dest = $_POST["accountdest"]; //world account
     $amount = $_POST["amount"];
     $type = "Transfer";
     $memo = $_POST["memo"];
@@ -55,6 +55,12 @@ if (isset($_POST["save"])) {
     $created = date('Y-m-d H:i:s');
 
     $db = getDB();
+
+    //Checking if accounts are the same
+    if ($src == $dest){
+	flash("Please select differet accounts");
+	die(header("Location: transfer.php"));
+    }
 
     //calculating each total
     $stmt = $db->prepare("SELECT id, balance FROM Accounts WHERE account_number = :acct");
@@ -110,7 +116,7 @@ if (isset($_POST["save"])) {
         $e = $stmt->errorInfo();
         flash("Error creating: " . var_export($e, true));
     }
-    echo($src);
+
     //Updating each account
     $stmt = $db->prepare("UPDATE Accounts set balance=:balance WHERE id=:id");
     $r = $stmt->execute([
