@@ -17,16 +17,15 @@ if(isset($_GET["page"])){
 	$page = (int)$_GET["page"];
     }
     catch(Exception $e){
+    }
 }
 
 $id = "";
 $results = [];
-/*
 if (isset($_SESSION["user"])) {
     $id = $_SESSION["user"]["id"];
 }
 
-*/
 if (!empty($id)) {
     $db = getDB();
 
@@ -63,10 +62,6 @@ if (!empty($id)) {
                     <div>
                         <div>Account Number:</div>
                         <div><?php safer_echo($r["account_number"]); ?></div>
-                    </div>
-                    <div>
-                        <div>Recipient account ID:</div>
-                        <div><?php safer_echo($r["act_dest_id"]); ?></div>
                     </div>
                     <div>
                         <div>Amount:</div>
