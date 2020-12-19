@@ -10,7 +10,9 @@ if (!is_logged_in()) {
 
 $page = 1;
 $per_page = 10;
-if(isset($_GET["page"];)){
+$total_pages = 1;
+$offset = 0;
+if(isset($_GET["page"])){
     try {
 	$page = (int)$_GET["page"];
     }
@@ -19,16 +21,19 @@ if(isset($_GET["page"];)){
 
 $id = "";
 $results = [];
-if (isset($_SESSION["user"]["id"])) {
-    $id = $_SESSION["id"];
+/*
+if (isset($_SESSION["user"])) {
+    $id = $_SESSION["user"]["id"];
 }
+
+*/
 if (!empty($id)) {
     $db = getDB();
 
     //getting total page count
     $stmt = $db->prepare("SELECT count(*) as total from Transactions as tr JOIN Accounts as acc on tr.act_src_id = acc.id JOIN Users on acc.user_id = Users.id WHERE Users.id = :id");
     $stmt->execute([":id" => get_user_id()]);
-    $totalResult = $stmt->fetch(PDO::_ASSOC);
+    $totalResult = $stmt->fetch(PDO::FETCH_ASSOC);
     $total = 0;
     if ($totalResult){
 	$total = (int)$totalResult["total"];
@@ -86,8 +91,10 @@ if (!empty($id)) {
     <?php else: ?>
         <p>No results</p>
     <?php endif; ?>
-    <nav aria-label="Hmmmm">
-            <ul class="pagination justify-content-center">
+</div>
+<div>
+    <nav>
+            <ul>
                 <li class="page-item <?php echo ($page-1) < 1?"disabled":"";?>">
                     <a class="page-link" href="?page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
                 </li>
@@ -98,7 +105,7 @@ if (!empty($id)) {
                     <a class="page-link" href="?page=<?php echo $page+1;?>">Next</a>
                 </li>
             </ul>
-        </nav>
+    </nav>
 </div>
 
 <?php require(__DIR__ . "/partials/flash.php");
